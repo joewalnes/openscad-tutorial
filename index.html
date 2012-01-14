@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<title>Introduction to OpenSCAD, for developers</title>
+
+<h1>Introduction to OpenSCAD, for developers</h1>
+
+<h2>What is OpenSCAD?</h2>
+
+<p><a href="http://www.openscad.org/">OpenSCAD</a> is an open source 3D modelling environment. Many of these exist, but what makes OpenSCAD different is rather than creating models interactively using point and click, you write programs to generate them.
+
+<p>Writing programs to generate 3D models can sound like hard work, but there are some scenarios where it makes a lot of sense, most notably when you wish to auto-generate a model based on some parameters.
+
+<p>This tutorial will follow the process of making a script that can auto generate you toy-bricks of various sizes.
+
+<h3>Who is the tutorial for?</h3>
+
+<p>You should know the basics of programming before following this tutorial. It doesn't really matter which language you're familiar with, but you should know what variables, functions and for loops are.
+
+<h2>Getting started with OpenSCAD</h2>
+
+<h3>Download and install</h3>
+
+<p>Follow the instructions on the <a href="http://www.openscad.org/">OpenSCAD</a> website to download and install. Pre-built binaries are available for Windows, OS X and Ubuntu. For other platforms, you can build from source.
+
+<p>Once downloaded and installed, you can run by clicking the OpenSCAD icon, or typing <code>openscad</code> from the command line.
+
+<h3>Getting acquainted with the environment</h3>
+
+<p><img src="images/openscad-empty.png" alt="OpenSCAD environment">
+
+<p>The environment has 3 panes:
+<ul>
+  <li>Left: Code editor - type here!
+  <li>Top Right: Model viewer - use the mouse to move/rotate/zoom the model
+  <li>Bottom Right: Console - OpenSCAD will tell you what it's doing here
+</ul>
+
+<p>OpenSCAD is installed with an excellent set of examples to explore. Explore them later, though.
+
+<p><img src="images/openscad-examples-menu.png" alt="OpenSCAD examples menu">
+
+<p>Let's open an example. Example 4 is a nice simple one to start with: <code>File -&gt; Examples -&gt; example004.scad</code>.
+
+<p>You'll see the code on the left hand side. Now let's compile and render the code: <code>Design -&gt; Compile and Render</code> (or hit <strong>F6</strong>).
+
+<p><img src="images/openscad-example4.png" alt="OpenSCAD example rendering">
+
+<p>You can alter your view of the model using the mouse:
+<ul>
+  <li>Mouse drag: <em>Rotate</em>
+  <li>Mouse wheel (or two finger gesture on a Mac trackpad): <em>Zoom</em>
+  <li>Ctrl + mouse drag: <em>Pan</em>
+</ul>
+
+<p>Okay, you've got the basics of the environment. It's pretty minimal (which I like). From here on, it's code all the way...
+
+<h2>Thinking in OpenSCAD</h2>
+
+<p>OpenSCAD has 2 primary ways of modelling:
+<ol>
+  <li><strong>2D Extrusion</strong>: This is where you take a flat 2D shape and stretch it along a 3rd axis. It's a lot like when you <a href="#todo">squish Play-Doh through a shaped hole</a>.
+  <li><strong>Constructive Solid Geometry</strong>: This is the construction of 3D shapes by combining other 3D shapes.
+</ol>
+
+<p>This tutorial only covers Constructive Solid Geometry - as that's the interesting part.
+
+<h3>Constructive Solid Geometry (CCG)</h3>
+
+<p>Wikipedia has a great explanation on <a href="http://en.wikipedia.org/wiki/Constructive_solid_geometry">Constructive Solid Geometry</a> (which I'll call CSG from here on). This is a not a process unique to OpenSCAD - in fact, many of the top industry 3D CAD tools use this approach.
+
+<p>In a nutshell, CSG is the process of taking some primitive shapes (e.g. cubes, spheres, cylinders) and applying boolean operations on them to create new shapes.
+
+<p>Think of <a href="#todo">Venn diagrams</a> - but for areas of 3D space.
+
+<p>You could make a new shape using the <strong>UNION</strong> of two shapes (an OR operation):
+
+<p><img src="operations/union.png" alt="UNION of 2 shapes">
+
+<pre class="code">
+union() {
+	cube(size=15);
+	translate([3, 3, 3]) {
+		sphere(r=10);
+	}
+}
+</pre>
+
+<p>Or you could find the <strong>INTERSECTION</strong> (an AND operation):
+
+<p><img src="operations/intersection.png" alt="INTERSECTION of 2 shapes">
+
+<pre class="code">
+intersection() {
+	cube(size=15);
+	translate([3, 3, 3]) {
+		sphere(r=10);
+	}
+}
+</pre>
+
+<p>Or the <strong>DIFFERENCE</strong> (a SUBTRACT operation):
+
+<p><img src="operations/difference.png" alt="DIFFERENCE of 2 shapes">
+
+<pre class="code">
+difference() {
+	cube(size=15);
+	translate([3, 3, 3]) {
+		sphere(r=10);
+	}
+}
+</pre>
+
+<p>The result of the <strong>DIFFERENCE</strong> will depend on the order of the shapes you give it:
+
+<p><img src="operations/difference2.png" alt="DIFFERENCE of 2 shapes in opposite order">
+
+<pre class="code">
+difference() {
+	translate([3, 3, 3]) {
+		sphere(r=10);
+	}
+	cube(size=15);
+}
+</pre>
+
+<p>And that's that.</p>
+
+<h2>The language</h2>
+
+<p>By now, you've noticed the code snippets. You can paste those into the environment and hit <code>Compile and Render (F6)</code> to render them.
+
+<p>Let's look at what we have used so far...
+
+<h3>Solid primitives</h3>
+
+<p>The <code>sphere()</code> and <code>cube()</code> functions create your basic shapes.
+
+<p>The <code>cube()</code> function takes a <code>size</code> parameter. In this case we are creating a regular cube, but it's also possible to specify the X, Y, and Z sizes independently, e.g. <code>cube(size=[1,4,3])</code> (this is called a <a href="http://en.wikipedia.org/wiki/Cuboid">rectangular cuboid</a>).
+
+<p>The <code>sphere()</code> functions takes a <code>r</code> parameter to specify the radius.
+
+<p>Shapes are always started from the origin coordinates <code>[0, 0, 0]</code>. For a cube, one corner resides on the origin, and the other corners protude out. For a sphere, the center is on the origin.
+
+<p>The <a href="#todo">Primitive Solids</a> section of the OpenSCAD manual lists all the solids available and their parameters. You've seen half of them - the other two are <code>cylinder()</code> and <code>polyhedron()</code>
+
+<h3>Transformations</h3>
+
+<p>Transformations allow you to mutate your shapes in various ways. The most common operations are <code>translate()</code> (a.k.a. move), <code>rotate()</code> and <code>scale()</code> (a.k.a. resize), all of which take <code>[X, Y, Z]</code> as a parameter.
+
+<p>The OpenSCAD language allows functions to be nested, for example:
+
+<p><img src="operations/transformations.png" alt="Nested transformations">
+
+<pre class="code">
+scale([1, 1.8, 0.5]) {
+  translate([7, 1.1, 1.1]) {
+    sphere(r=15);
+  }
+  rotate([90, 45, 0]) {
+    cube(size=[10, 20, 30]);
+    cube(size=[30, 20, 10]);
+  }
+}
+</pre>
+
+<p>Like with most C style programming languages, the squigglies <code>{ &#8230; }</code> are optional if you only have one nested statement, so you can write statements like <code>scale([1, 1.8, 0.5]) translate([7, 1.1, 1.1]) sphere(r=15);</code>.
+
+<h2>Creating a toy brick</h2>
+
+<p>Okay, let's do something real. Our toy brick.
+
+<p><img src="brick/2x3-top.png" alt="2x3 Brick (Top)"><img src="brick/2x3-bottom.png" alt="2x3 Brick (Bottom)">
+
+<p>First some vocabulary. I'll use these term:
+
+<dl>
+  <dt>unit <dd>The smallest size of brick. The above brick is 2 &times; 3 units.
+  <dt>wall <dd>TODO
+  <dt>stud <dd>The cylindrical blob on top of the brick, used to connect to the base of other bricks. The above brick has 6 studs.
+  <dt>tube <dd>Internally used to connect to studs of other bricks at its base where there is no wall.
+</dl>
+
+<h3>Dimensions</h3>
+
+<p>To start off, we need some dimensions. We'll be using these a lot, so we'll assign these. These dimensions are compatible with many common toy brick systems.
+
+<pre class="code">
+// All dimensions are in mm. Changes these to be compatible with different brick systems.
+unit_width = 5; // width and height
+unit_height = 6;
+wall_thickness = 1;
+stud_height = 1;
+</pre>
+
+<p>In addition, we need to figure out the radius of the studs and the tubes. We could measure these, but it's also possible to calculate them based on the variables above. The advantage of calculating them is we can easily alter the dimensions above to work with other brick systems.
+
+<p>First the radius of the stud. Well we know it needs to fit in a unit, but account for the wall thickness. Therefore:
+
+<pre class="code">
+stud_radius = unit_length / 2 - wall_thickness;
+</pre>
+
+<p>The tube radius is a bit trickier. Here's what it should be:
+
+<p>TODO: Show diagram
+
+<p>To calculate it you can use <a href="http://en.wikipedia.org/wiki/Pythagorean_theorem">Pythagoras' theorum</a>. OpenSCAD includes a bunch of <a href="#todo">mathematical functions</a>.
+
+<pre class="code">
+tube_radius = sqrt(pow(unit_length / 2, 2) * 2) - stud_radius;
+</pre>
+
+<h3>The main brick</h3>
+
+<p>First, we're going to create the brick. To start with, let's create a 2 &times; 3 brick. We'll define these:
+
+<pre class="code">
+x_units = 2;
+y_units = 3;
+</pre>
+
+<p>And now a brick shape:
+
+<pre class="code">
+// Solid brick
+<strong>cube([
+  x_units * unit_width, 
+  y_units * unit_width,
+  unit_height]);</strong>
+</pre>
+
+<p><img src="brick/brick-01-top.png" alt="Solid brick (top)"><img src="brick/brick-01-bottom.png" alt="Solid brick (bottom)">
+
+<p>Now we need to hollow it out. For this we can create another brick, that's slightly smaller (twice the wall size), and then use the <em>difference</em> operation to <em>subtract</em> it from the original.
+
+<pre class="code">
+<strong>difference() {</strong>
+  // Solid brick
+  cube([
+    x_units * unit_width, 
+    y_units * unit_width,
+    unit_height]);
+  // Hollow brick
+  <strong>cube([
+    x_units * unit_width - wall_thickness * 2, 
+    y_units * unit_width - wall_thickness * 2,
+    unit_height - wall_thickness]);
+}</strong></pre>
+
+<p><img src="brick/brick-02-top.png" alt="First attempt at hollow brick (top)"><img src="brick/brick-02-bottom.png" alt="First attempt at hollow brick (bottom)">
+
+<p>Close. Except because the origin of the cube is the corner (not the center), we also need to <em>translate</em> it to take into account the wall thickness.
+
+<pre class="code">
+difference() {
+  // Solid brick
+  cube([
+    x_units * unit_width, 
+    y_units * unit_width,
+    unit_height]);
+  // Hollow brick
+  <strong>translate([1, 1, 0]) {</strong>
+    cube([
+      x_units * unit_width - wall_thickness * 2, 
+      y_units * unit_width - wall_thickness * 2,
+      unit_height - wall_thickness]);
+  <strong>}</strong>
+}
+</pre>
+
+<p><img src="brick/brick-03-top.png" alt="Hollow brick (top)"><img src="brick/brick-03-bottom.png" alt="Hollow brick (bottom)">
+
+
